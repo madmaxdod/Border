@@ -9,9 +9,7 @@ let animationId;
 // Configuration
 const config = {
     minScale: 0.2,      // Minimum scale when very close
-    maxScale: 2.0,      // Maximum scale when far away
-    baseDistance: 300,  // Reference distance for scaling calculations
-    updateInterval: 100 // ms between detection updates
+    maxScale: 2.0       // Maximum scale when far away
 };
 
 // Initialize the application
@@ -20,22 +18,18 @@ async function init() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
     
-    document.getElementById('startButton').addEventListener('click', start);
-    document.getElementById('stopButton').addEventListener('click', stop);
-    
-    updateStatus('Ready to start');
+    // Auto-start the experience
+    start();
 }
 
 // Start the experience
 async function start() {
     try {
-        updateStatus('Requesting camera access...');
-        
         // Request webcam access
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
             },
             audio: false
         });
@@ -43,52 +37,32 @@ async function start() {
         video.srcObject = stream;
         await video.play();
         
-        // Set canvas size to match video
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        
-        updateStatus('Loading AI model...');
+        // Set canvas to fullscreen
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         
         // Load COCO-SSD model for person detection
         model = await cocoSsd.load();
         
-        updateStatus('Model loaded. Detecting...');
-        
         isRunning = true;
-        document.getElementById('startButton').disabled = true;
-        document.getElementById('stopButton').disabled = false;
         
         // Start detection loop
         detectAndDisplay();
         
     } catch (error) {
         console.error('Error starting experience:', error);
-        updateStatus('Error: ' + error.message);
-        alert('Unable to access webcam. Please ensure you have granted camera permissions.');
+        // Show error on canvas
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Unable to access webcam. Please grant camera permissions and reload.', canvas.width / 2, canvas.height / 2);
     }
 }
 
-// Stop the experience
-function stop() {
-    isRunning = false;
-    
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-    }
-    
-    if (video.srcObject) {
-        video.srcObject.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-    }
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    document.getElementById('startButton').disabled = false;
-    document.getElementById('stopButton').disabled = true;
-    
-    updateStatus('Stopped');
-    updateDistance('--');
-    updateScale('--');
+// Resize canvas to fullscreen
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
 
 // Main detection and display loop
@@ -123,7 +97,8 @@ async function detectAndDisplay() {
             // Estimate distance based on bounding box height
             // Larger height = closer to camera
             // Smaller height = farther from camera
-            const normalizedHeight = personHeight / canvas.height;
+            const videoHeight = video.videoHeight;
+            const normalizedHeight = personHeight / videoHeight;
             
             // Calculate scale inversely proportional to distance
             // When person is close (large bbox), scale is small
@@ -133,19 +108,31 @@ async function detectAndDisplay() {
             // Draw the shoe region with inverse scaling
             drawShoeRegion(shoeRegion, scale);
             
-            // Update UI
-            updateStatus('Person detected - Tracking shoes');
-            updateDistance((normalizedHeight * 100).toFixed(1) + '%');
-            updateScale(scale.toFixed(2) + 'x');
-            
         } else {
             // No person detected - show full video feed at normal scale
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            updateStatus('Waiting for person...');
-            updateDistance('--');
-            updateScale('1.00x');
+            // Calculate scaling to fit video in canvas while maintaining aspect ratio
+            const videoAspect = video.videoWidth / video.videoHeight;
+            const canvasAspect = canvas.width / canvas.height;
+            
+            let drawWidth, drawHeight, drawX, drawY;
+            
+            if (videoAspect > canvasAspect) {
+                // Video is wider than canvas
+                drawWidth = canvas.width;
+                drawHeight = canvas.width / videoAspect;
+                drawX = 0;
+                drawY = (canvas.height - drawHeight) / 2;
+            } else {
+                // Video is taller than canvas
+                drawHeight = canvas.height;
+                drawWidth = canvas.height * videoAspect;
+                drawX = (canvas.width - drawWidth) / 2;
+                drawY = 0;
+            }
+            
+            ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
         }
         
     } catch (error) {
@@ -189,10 +176,6 @@ function drawShoeRegion(region, scale) {
     // Draw the shoe region with scaling
     ctx.save();
     
-    // Add a subtle fade effect to edges
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 20;
-    
     // Draw the extracted shoe region
     ctx.drawImage(
         video,
@@ -200,27 +183,7 @@ function drawShoeRegion(region, scale) {
         centerX, centerY, scaledWidth, scaledHeight        // Destination with scale
     );
     
-    // Optional: Draw a border around the shoe region for clarity
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(centerX, centerY, scaledWidth, scaledHeight);
-    
     ctx.restore();
-}
-
-// Update status message
-function updateStatus(message) {
-    document.getElementById('status').textContent = message;
-}
-
-// Update distance display
-function updateDistance(value) {
-    document.getElementById('distance').textContent = 'Distance: ' + value;
-}
-
-// Update scale display
-function updateScale(value) {
-    document.getElementById('scale').textContent = 'Scale: ' + value;
 }
 
 // Initialize on page load

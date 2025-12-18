@@ -10,7 +10,7 @@ This digital interpretation uses computer vision to:
 - Detect people through a webcam
 - Focus on their lower body (shoes/feet)
 - Inversely scale the image based on distance
-- Create an immersive experience where **closer = smaller** and **farther = larger**
+- Create an immersive fullscreen experience where **closer = smaller** and **farther = larger**
 
 ## Features
 
@@ -18,18 +18,20 @@ This digital interpretation uses computer vision to:
 - 🤖 AI-powered person detection using TensorFlow.js
 - 👟 Automatic focus on shoe/feet area
 - 📏 Inverse distance-to-scale relationship
-- 🎨 Clean, minimalist interface
-- 📱 Responsive design
+- 🖼️ Fullscreen immersive display
+- 🚀 Auto-start experience
+- 🔒 Privacy-first - all processing happens locally in browser
 
 ## How It Works
 
-1. The webcam captures video of the space in front of it
+1. The webcam captures fullscreen video of the space
 2. TensorFlow.js COCO-SSD model detects people in the frame
 3. The system identifies the lower portion of the person's body (shoes area)
 4. Distance is estimated based on the size of the detected bounding box
-5. The shoe region is displayed with inverse scaling:
+5. The shoe region is displayed fullscreen with inverse scaling:
    - **Close to camera** (large detection) → **Small display**
    - **Far from camera** (small detection) → **Large display**
+6. When no person is detected, the full video feed is shown
 
 ## Installation & Usage
 
@@ -61,7 +63,7 @@ This digital interpretation uses computer vision to:
    http://localhost:8000
    ```
 
-4. Click "Start Experience" and allow webcam access when prompted
+4. Allow webcam access when prompted - the experience starts automatically
 
 ### Requirements
 
@@ -74,17 +76,17 @@ This digital interpretation uses computer vision to:
 
 ### Technologies Used
 
-- **HTML5** - Structure and video elements
-- **CSS3** - Styling and responsive design
-- **JavaScript (ES6+)** - Application logic
+- **HTML5** - Minimal structure with video and canvas elements
+- **CSS3** - Fullscreen styling
+- **JavaScript (ES6+)** - Application logic and auto-start
 - **TensorFlow.js** - Machine learning framework
 - **COCO-SSD** - Pre-trained object detection model
 
 ### Files
 
-- `index.html` - Main HTML structure
-- `style.css` - Styling and layout
-- `app.js` - Core application logic and detection
+- `index.html` - Minimal HTML structure (video, canvas, scripts)
+- `style.css` - Fullscreen styling
+- `app.js` - Core application logic with auto-start and detection
 
 ### Configuration
 
@@ -93,9 +95,7 @@ You can adjust the behavior by modifying the `config` object in `app.js`:
 ```javascript
 const config = {
     minScale: 0.2,      // Minimum scale when very close
-    maxScale: 2.0,      // Maximum scale when far away
-    baseDistance: 300,  // Reference distance for scaling
-    updateInterval: 100 // ms between detection updates
+    maxScale: 2.0       // Maximum scale when far away
 };
 ```
 
@@ -139,7 +139,7 @@ Bruce Nauman's "Performance Corridor" explored themes of:
 - The relationship between viewer and viewed
 - Body awareness and physical space
 
-This digital interpretation translates these concepts into an interactive web experience, making them accessible to a wider audience while maintaining the core conceptual framework.
+This digital interpretation translates these concepts into an immersive fullscreen web experience, making them accessible to a wider audience while maintaining the core conceptual framework of inverse spatial relationships.
 
 ## Troubleshooting
 
@@ -152,7 +152,6 @@ This digital interpretation translates these concepts into an interactive web ex
 ### Performance issues
 - Close other browser tabs
 - Ensure good lighting for better detection
-- Try reducing browser zoom level
 - Check system resources
 
 ### Detection not working
@@ -181,4 +180,4 @@ Contributions are welcome! Feel free to:
 
 ---
 
-**Note**: This is an artistic project exploring spatial perception and human-computer interaction. The inverse scaling effect is intentional and designed to create a thought-provoking experience.
+**Note**: This is an artistic project exploring spatial perception and human-computer interaction. The inverse scaling effect is intentional and designed to create a thought-provoking, immersive experience.
