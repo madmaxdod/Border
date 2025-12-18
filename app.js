@@ -7,6 +7,7 @@ let isRunning = false;
 let animationId;
 let lastDetectionTime = 0;
 let lastPredictions = [];
+let wakeLock = null;
 
 // Configuration
 const config = {
@@ -94,13 +95,46 @@ function resizeCanvas() {
 }
 
 // Prevent screen lock on mobile devices
-function keepScreenAwake() {
+async function keepScreenAwake() {
     if ('wakeLock' in navigator) {
-        navigator.wakeLock.request('screen').catch(err => {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+            
+            // Re-acquire wake lock when page becomes visible
+            document.addEventListener('visibilitychange', async () => {
+                if (wakeLock !== null && document.visibilityState === 'visible') {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            });
+        } catch (err) {
             console.log('Wake lock request failed:', err);
-        });
+        }
     }
 }
+
+// Cleanup function
+function cleanup() {
+    isRunning = false;
+    
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+    
+    if (wakeLock !== null) {
+        wakeLock.release().then(() => {
+            wakeLock = null;
+        });
+    }
+    
+    if (video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+    }
+}
+
+// Handle page unload
+window.addEventListener('beforeunload', cleanup);
+window.addEventListener('pagehide', cleanup);
 
 // Main detection and display loop
 async function detectAndDisplay() {
