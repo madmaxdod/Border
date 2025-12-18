@@ -21,21 +21,43 @@ async function init() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
     
+    // Request fullscreen on any user interaction (required for mobile)
+    document.addEventListener('click', requestFullscreen, { once: true });
+    document.addEventListener('touchstart', requestFullscreen, { once: true });
+    
     // Auto-start the experience
     start();
+}
+
+// Request fullscreen mode
+function requestFullscreen() {
+    const elem = document.documentElement;
+    
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(err => console.log('Fullscreen request failed:', err));
+    } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen();
+    } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen();
+    } else if (elem.msRequestFullscreen) { // IE/Edge
+        elem.msRequestFullscreen();
+    }
 }
 
 // Start the experience
 async function start() {
     try {
-        // Request webcam access with fallback constraints
-        const stream = await navigator.mediaDevices.getUserMedia({
+        // Request webcam access with mobile-friendly constraints
+        const constraints = {
             video: {
+                facingMode: 'user', // Front camera on mobile, any on desktop
                 width: { ideal: 1280, max: 1920 },
                 height: { ideal: 720, max: 1080 }
             },
             audio: false
-        });
+        };
+        
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         
         video.srcObject = stream;
         await video.play();
@@ -43,6 +65,7 @@ async function start() {
         // Set canvas to fullscreen
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
         
         // Load COCO-SSD model for person detection
         model = await cocoSsd.load();
@@ -55,10 +78,12 @@ async function start() {
     } catch (error) {
         console.error('Error starting experience:', error);
         // Show error on canvas
+        resizeCanvas();
         ctx.fillStyle = '#fff';
-        ctx.font = '20px Arial';
+        ctx.font = '16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('Unable to access webcam. Please grant camera permissions and reload.', canvas.width / 2, canvas.height / 2);
+        ctx.fillText('Unable to access webcam.', canvas.width / 2, canvas.height / 2 - 10);
+        ctx.fillText('Please grant camera permissions and reload.', canvas.width / 2, canvas.height / 2 + 10);
     }
 }
 
@@ -66,6 +91,15 @@ async function start() {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+}
+
+// Prevent screen lock on mobile devices
+function keepScreenAwake() {
+    if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen').catch(err => {
+            console.log('Wake lock request failed:', err);
+        });
+    }
 }
 
 // Main detection and display loop
@@ -147,7 +181,6 @@ async function detectAndDisplay() {
         
         ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
     }
-    }
     
     // Schedule next frame
     animationId = requestAnimationFrame(detectAndDisplay);
@@ -197,4 +230,7 @@ function drawShoeRegion(region, scale) {
 }
 
 // Initialize on page load
-window.addEventListener('load', init);
+window.addEventListener('load', () => {
+    init();
+    keepScreenAwake();
+});

@@ -18,7 +18,9 @@ This digital interpretation uses computer vision to:
 - 🤖 AI-powered person detection using TensorFlow.js
 - 👟 Automatic focus on shoe/feet area
 - 📏 Inverse distance-to-scale relationship
-- 🖼️ Fullscreen immersive display
+- 🖼️ True fullscreen immersive display
+- 📱 **Mobile device support** (iOS & Android)
+- 💻 **Desktop/laptop support** (Windows, Mac, Linux)
 - 🚀 Auto-start experience
 - 🔒 Privacy-first - all processing happens locally in browser
 
@@ -67,10 +69,20 @@ This digital interpretation uses computer vision to:
 
 ### Requirements
 
-- Modern web browser with WebRTC support (Chrome, Firefox, Safari, Edge)
-- Webcam access permission
+- Modern web browser with WebRTC support
+  - **Desktop**: Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
+  - **Mobile**: Safari on iOS 13+, Chrome on Android 80+
+- Webcam/camera access permission
 - HTTPS or localhost (required for webcam access)
 - Stable internet connection (for CDN-hosted ML models)
+
+### Mobile-Specific Features
+
+- **Fullscreen Mode**: Tap anywhere to enter fullscreen (required on mobile browsers)
+- **Orientation Support**: Automatically adapts to portrait/landscape orientation
+- **Touch Optimized**: Prevents accidental zooming and scrolling
+- **Wake Lock**: Keeps screen awake during experience (on supported devices)
+- **Front Camera**: Uses front-facing camera by default on mobile devices
 
 ## Technical Details
 
@@ -120,10 +132,19 @@ The project is purely client-side and can be hosted on:
 
 ## Browser Compatibility
 
+### Desktop
 - ✅ Chrome 80+
 - ✅ Firefox 75+
 - ✅ Safari 13+
 - ✅ Edge 80+
+
+### Mobile
+- ✅ Safari on iOS 13+ (iPhone, iPad)
+- ✅ Chrome on Android 80+
+- ✅ Firefox on Android 79+
+- ✅ Samsung Internet 11+
+
+**Note**: First tap/touch will trigger fullscreen mode on mobile devices.
 
 ## Privacy & Security
 
@@ -149,17 +170,25 @@ This digital interpretation translates these concepts into an immersive fullscre
 - Check browser permissions for camera access
 - Try refreshing the page
 - Check if another application is using the camera
+- **Mobile**: Grant camera permissions in browser settings
+
+### Fullscreen not activating
+- **Mobile**: Tap anywhere on the screen to trigger fullscreen
+- Some browsers require user interaction before entering fullscreen
+- Check browser fullscreen settings
 
 ### Performance issues
 - Close other browser tabs
 - Ensure good lighting for better detection
 - Check system resources
+- **Mobile**: Close background apps, ensure good battery level
 
 ### Detection not working
 - Ensure adequate lighting
 - Move to ensure full body is in frame
 - Wait for model to fully load
 - Check browser console for errors
+- **Mobile**: Detection may be slower on older devices
 
 ## License
 
