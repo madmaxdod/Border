@@ -5,11 +5,14 @@ let video, canvas, ctx;
 let model;
 let isRunning = false;
 let animationId;
+let lastDetectionTime = 0;
+let lastPredictions = [];
 
 // Configuration
 const config = {
     minScale: 0.2,      // Minimum scale when very close
-    maxScale: 2.0       // Maximum scale when far away
+    maxScale: 2.0,      // Maximum scale when far away
+    detectionInterval: 150  // ms between detection runs for performance
 };
 
 // Initialize the application
@@ -25,11 +28,11 @@ async function init() {
 // Start the experience
 async function start() {
     try {
-        // Request webcam access
+        // Request webcam access with fallback constraints
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: { ideal: 1920 },
-                height: { ideal: 1080 }
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 }
             },
             audio: false
         });
@@ -69,16 +72,26 @@ function resizeCanvas() {
 async function detectAndDisplay() {
     if (!isRunning) return;
     
-    try {
-        // Detect objects in the current frame
-        const predictions = await model.detect(video);
-        
-        // Filter for person detections
-        const people = predictions.filter(pred => pred.class === 'person');
-        
-        if (people.length > 0) {
-            // Use the first detected person
-            const person = people[0];
+    const currentTime = Date.now();
+    const timeSinceLastDetection = currentTime - lastDetectionTime;
+    
+    // Run detection at configured interval for performance
+    if (timeSinceLastDetection >= config.detectionInterval) {
+        try {
+            // Detect objects in the current frame
+            lastPredictions = await model.detect(video);
+            lastDetectionTime = currentTime;
+        } catch (error) {
+            console.error('Detection error:', error);
+        }
+    }
+    
+    // Filter for person detections from last successful detection
+    const people = lastPredictions.filter(pred => pred.class === 'person');
+    
+    if (people.length > 0) {
+        // Use the first detected person
+        const person = people[0];
             
             // Extract the lower portion (shoes/feet area)
             // We'll focus on the bottom 30% of the person's bounding box
@@ -134,12 +147,9 @@ async function detectAndDisplay() {
             
             ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
         }
-        
-    } catch (error) {
-        console.error('Detection error:', error);
     }
     
-    // Schedule next detection
+    // Schedule next frame
     animationId = requestAnimationFrame(detectAndDisplay);
 }
 
