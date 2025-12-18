@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Border - Performance Corridor Experience</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <h1>Border - Performance Corridor</h1>
+        <p class="subtitle">Inspired by Bruce Nauman's Performance Corridor</p>
+        
+        <div id="video-container">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div id="controls">
+            <button id="startButton">Start Experience</button>
+            <button id="stopButton" disabled>Stop</button>
+        </div>
+        
+        <div id="info">
+            <p id="status">Click "Start Experience" to begin</p>
+            <p id="distance">Distance: --</p>
+            <p id="scale">Scale: --</p>
+        </div>
+        
+        <div id="instructions">
+            <h3>How it works:</h3>
+            <ul>
+                <li>The camera detects people in the frame</li>
+                <li>When detected, it focuses on the lower body (shoes/feet area)</li>
+                <li>As you move closer to the camera, the image becomes smaller</li>
+                <li>As you move away, the image becomes larger</li>
+                <li>This creates an inverse relationship between distance and visual scale</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
+    <script src="app.js"></script>
+</body>
+</html>
