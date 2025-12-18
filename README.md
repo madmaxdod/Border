@@ -94,8 +94,9 @@ You can adjust the behavior by modifying the `config` object in `app.js`:
 
 ```javascript
 const config = {
-    minScale: 0.2,      // Minimum scale when very close
-    maxScale: 2.0       // Maximum scale when far away
+    minScale: 0.2,          // Minimum scale when very close
+    maxScale: 2.0,          // Maximum scale when far away
+    detectionInterval: 150  // ms between detection runs for performance
 };
 ```
 

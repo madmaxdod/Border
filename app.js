@@ -92,61 +92,61 @@ async function detectAndDisplay() {
     if (people.length > 0) {
         // Use the first detected person
         const person = people[0];
-            
-            // Extract the lower portion (shoes/feet area)
-            // We'll focus on the bottom 30% of the person's bounding box
-            const bbox = person.bbox;
-            const personHeight = bbox[3];
-            const lowerPortionHeight = personHeight * 0.3;
-            
-            // Calculate the shoe region (bottom 30% of person)
-            const shoeRegion = {
-                x: bbox[0],
-                y: bbox[1] + personHeight - lowerPortionHeight,
-                width: bbox[2],
-                height: lowerPortionHeight
-            };
-            
-            // Estimate distance based on bounding box height
-            // Larger height = closer to camera
-            // Smaller height = farther from camera
-            const videoHeight = video.videoHeight;
-            const normalizedHeight = personHeight / videoHeight;
-            
-            // Calculate scale inversely proportional to distance
-            // When person is close (large bbox), scale is small
-            // When person is far (small bbox), scale is large
-            const scale = calculateInverseScale(normalizedHeight);
-            
-            // Draw the shoe region with inverse scaling
-            drawShoeRegion(shoeRegion, scale);
-            
+        
+        // Extract the lower portion (shoes/feet area)
+        // We'll focus on the bottom 30% of the person's bounding box
+        const bbox = person.bbox;
+        const personHeight = bbox[3];
+        const lowerPortionHeight = personHeight * 0.3;
+        
+        // Calculate the shoe region (bottom 30% of person)
+        const shoeRegion = {
+            x: bbox[0],
+            y: bbox[1] + personHeight - lowerPortionHeight,
+            width: bbox[2],
+            height: lowerPortionHeight
+        };
+        
+        // Estimate distance based on bounding box height
+        // Larger height = closer to camera
+        // Smaller height = farther from camera
+        const videoHeight = video.videoHeight;
+        const normalizedHeight = personHeight / videoHeight;
+        
+        // Calculate scale inversely proportional to distance
+        // When person is close (large bbox), scale is small
+        // When person is far (small bbox), scale is large
+        const scale = calculateInverseScale(normalizedHeight);
+        
+        // Draw the shoe region with inverse scaling
+        drawShoeRegion(shoeRegion, scale);
+        
+    } else {
+        // No person detected - show full video feed at normal scale
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Calculate scaling to fit video in canvas while maintaining aspect ratio
+        const videoAspect = video.videoWidth / video.videoHeight;
+        const canvasAspect = canvas.width / canvas.height;
+        
+        let drawWidth, drawHeight, drawX, drawY;
+        
+        if (videoAspect > canvasAspect) {
+            // Video is wider than canvas
+            drawWidth = canvas.width;
+            drawHeight = canvas.width / videoAspect;
+            drawX = 0;
+            drawY = (canvas.height - drawHeight) / 2;
         } else {
-            // No person detected - show full video feed at normal scale
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Calculate scaling to fit video in canvas while maintaining aspect ratio
-            const videoAspect = video.videoWidth / video.videoHeight;
-            const canvasAspect = canvas.width / canvas.height;
-            
-            let drawWidth, drawHeight, drawX, drawY;
-            
-            if (videoAspect > canvasAspect) {
-                // Video is wider than canvas
-                drawWidth = canvas.width;
-                drawHeight = canvas.width / videoAspect;
-                drawX = 0;
-                drawY = (canvas.height - drawHeight) / 2;
-            } else {
-                // Video is taller than canvas
-                drawHeight = canvas.height;
-                drawWidth = canvas.height * videoAspect;
-                drawX = (canvas.width - drawWidth) / 2;
-                drawY = 0;
-            }
-            
-            ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
+            // Video is taller than canvas
+            drawHeight = canvas.height;
+            drawWidth = canvas.height * videoAspect;
+            drawX = (canvas.width - drawWidth) / 2;
+            drawY = 0;
         }
+        
+        ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
+    }
     }
     
     // Schedule next frame
