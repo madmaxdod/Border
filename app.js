@@ -12,8 +12,8 @@ let wakeLock = null;
 // Configuration
 const config = {
     minScale: 0.2,      // Minimum scale when very close
-    maxScale: 2.0,      // Maximum scale when far away
-    detectionInterval: 150  // ms between detection runs for performance
+    maxScale: 5.0,      // Maximum scale when far away (larger to start big)
+    detectionInterval: 100   // ms between detection runs; lower for higher FPS
 };
 
 // Initialize the application
@@ -193,30 +193,8 @@ async function detectAndDisplay() {
         drawShoeRegion(shoeRegion, scale);
         
     } else {
-        // No person detected - show full video feed at normal scale
+        // No person detected - show nothing
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Calculate scaling to fit video in canvas while maintaining aspect ratio
-        const videoAspect = video.videoWidth / video.videoHeight;
-        const canvasAspect = canvas.width / canvas.height;
-        
-        let drawWidth, drawHeight, drawX, drawY;
-        
-        if (videoAspect > canvasAspect) {
-            // Video is wider than canvas
-            drawWidth = canvas.width;
-            drawHeight = canvas.width / videoAspect;
-            drawX = 0;
-            drawY = (canvas.height - drawHeight) / 2;
-        } else {
-            // Video is taller than canvas
-            drawHeight = canvas.height;
-            drawWidth = canvas.height * videoAspect;
-            drawX = (canvas.width - drawWidth) / 2;
-            drawY = 0;
-        }
-        
-        ctx.drawImage(video, drawX, drawY, drawWidth, drawHeight);
     }
     
     // Schedule next frame
@@ -234,7 +212,7 @@ function calculateInverseScale(normalizedHeight) {
     // Map to scale range with a curve for better visual effect
     // Add a base to prevent division by zero and create smooth transition
     const scale = config.minScale + (config.maxScale - config.minScale) * 
-                  Math.pow(inverseHeight, 0.7);
+                  Math.pow(inverseHeight, 0.5); // gentler curve so far-away starts larger
     
     // Clamp to min/max values
     return Math.max(config.minScale, Math.min(config.maxScale, scale));
