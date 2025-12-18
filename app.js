@@ -99,18 +99,21 @@ async function keepScreenAwake() {
     if ('wakeLock' in navigator) {
         try {
             wakeLock = await navigator.wakeLock.request('screen');
-            
-            // Re-acquire wake lock when page becomes visible
-            document.addEventListener('visibilitychange', async () => {
-                if (wakeLock !== null && document.visibilityState === 'visible') {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                }
-            });
         } catch (err) {
             console.log('Wake lock request failed:', err);
         }
     }
 }
+
+// Handle wake lock on visibility changes
+async function handleVisibilityChange() {
+    if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+        await keepScreenAwake();
+    }
+}
+
+// Register visibility change listener once
+document.addEventListener('visibilitychange', handleVisibilityChange);
 
 // Cleanup function
 function cleanup() {
